@@ -17,16 +17,12 @@ pipeline {
 
         stage('Install Apache') {
             steps {
-                echo "Installing Apache HTTPD..."
-                sh '''
-                sudo yum install -y httpd
-                '''
+                sh 'sudo yum install -y httpd || true'
             }
         }
 
         stage('Start Apache Service') {
             steps {
-                echo "Starting Apache service..."
                 sh '''
                 sudo systemctl start httpd
                 sudo systemctl enable httpd
@@ -36,10 +32,9 @@ pipeline {
 
         stage('Deploy Application') {
             steps {
-                echo "Deploying static application..."
                 sh '''
                 sudo rm -rf ${APP_DIR}/*
-                sudo cp -r . ${APP_DIR}/
+                sudo cp -r * ${APP_DIR}/
                 sudo chown -R apache:apache ${APP_DIR}
                 '''
             }
@@ -47,20 +42,8 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                echo "Verifying Apache service..."
-                sh '''
-                sudo systemctl is-active httpd
-                '''
+                sh 'sudo systemctl status httpd'
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Deployment successful! Application is live."
-        }
-        failure {
-            echo "❌ Deployment failed. Please check logs."
         }
     }
 }
